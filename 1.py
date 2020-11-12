@@ -13,18 +13,21 @@ display_height=600
 import time
 import random
 import math
+from pygame import mixer
 
 
 gamedisplays=pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption("Racing With Sumo")
 clock=pygame.time.Clock()
-carimg=pygame.image.load('car1.jpg')
+carimg=pygame.image.load('car7.jpg')
 backgroundpic=pygame.image.load("download12.jpg")
 yellow_strip=pygame.image.load("yellow strip.jpg")
 strip=pygame.image.load("strip.jpg")
 intro_background=pygame.image.load("background.jpg")
 instruction_background=pygame.image.load("background2.jpg")
 bulletImg = pygame.image.load('bullet.png')
+mixer.music.load("background.mp3")
+mixer.music.play(-1)
 car_width=56
 pause=False
 bullet_state = "ready"
@@ -314,7 +317,7 @@ def game_loop():
     y2=7
     fps=120
     bulletX = 0
-    bulletY = 480
+    bulletY = 400
     bulletX_change = 0
     bulletY_change = 25
     global bullet_state
@@ -337,6 +340,8 @@ def game_loop():
                     obstacle_speed-=2
                 if event.key == pygame.K_SPACE:
                     if bullet_state is "ready":
+                        bullet_sound = mixer.Sound("bullet.wav")
+                        bullet_sound.play()
                         bulletX = x
                         fire_bullet(bulletX, bulletY)
             if event.type==pygame.KEYUP:
@@ -378,8 +383,12 @@ def game_loop():
         car(x,y)
         score_system(passed,score)
         if x>690-car_width or x<110:
+            crash_sound = mixer.Sound("crash.wav")
+            crash_sound.play()
             crash()
         if x>display_width-(car_width+110) or x<110:
+            crash_sound = mixer.Sound("crash.wav")
+            crash_sound.play()
             crash()
         if obs_starty>display_height:
             obs_starty=0-obs_height
@@ -399,6 +408,8 @@ def game_loop():
 
         if y<obs_starty+obs_height:
             if x > obs_startx and x < obs_startx + obs_width or x+car_width > obs_startx and x+car_width < obs_startx+obs_width:
+                crash_sound = mixer.Sound("crash.wav")
+                crash_sound.play()
                 crash()
         if bulletY <= 0:
             bulletY = 480
@@ -409,6 +420,8 @@ def game_loop():
             bulletY -= bulletY_change
         collison = isCollison(obs_startx,obs_starty,bulletX,bulletY)
         if collison:
+            explosion_sound = mixer.Sound("brust.wav")
+            explosion_sound.play()
             bulletY = 480
             bullet_state = "ready"
             obs_startx=random.randrange(200,(display_width-200))
