@@ -12,6 +12,7 @@ display_width=800
 display_height=600
 import time
 import random
+import math
 
 
 gamedisplays=pygame.display.set_mode((display_width,display_height))
@@ -23,8 +24,10 @@ yellow_strip=pygame.image.load("yellow strip.jpg")
 strip=pygame.image.load("strip.jpg")
 intro_background=pygame.image.load("background.jpg")
 instruction_background=pygame.image.load("background2.jpg")
+bulletImg = pygame.image.load('bullet.png')
 car_width=56
 pause=False
+bullet_state = "ready"
 
 def intro_loop():
     intro=True
@@ -281,6 +284,18 @@ def background():
 def car(x,y):
     gamedisplays.blit(carimg,(x,y))
 
+def fire_bullet(x,y):
+    global bullet_state
+    bullet_state = "fire"
+    gamedisplays.blit(bulletImg, (x + 16, y + 10))
+
+def isCollison(obs_startx,obs_starty,bulletX,bulletY):
+    distance = math.sqrt((math.pow(obs_startx - bulletX,2)) + (math.pow(obs_starty - bulletY,2)))
+    if distance < 27:
+        return True
+    else:
+        return False
+
 def game_loop():
     global pause
     x=(display_width*0.45)
@@ -298,6 +313,11 @@ def game_loop():
     score=0
     y2=7
     fps=120
+    bulletX = 0
+    bulletY = 480
+    bulletX_change = 0
+    bulletY_change = 25
+    global bullet_state
 
     bumped=False
     while not bumped:
@@ -315,6 +335,10 @@ def game_loop():
                     obstacle_speed+=2
                 if event.key==pygame.K_b:
                     obstacle_speed-=2
+                if event.key == pygame.K_SPACE:
+                    if bullet_state is "ready":
+                        bulletX = x
+                        fire_bullet(bulletX, bulletY)
             if event.type==pygame.KEYUP:
                 if event.key==pygame.K_LEFT or event.key==pygame.K_RIGHT:
                     x_change=0
@@ -373,10 +397,23 @@ def game_loop():
                 pygame.display.update()
                 time.sleep(3)
 
-
         if y<obs_starty+obs_height:
             if x > obs_startx and x < obs_startx + obs_width or x+car_width > obs_startx and x+car_width < obs_startx+obs_width:
                 crash()
+        if bulletY <= 0:
+            bulletY = 480
+            bullet_state = "ready"
+
+        if bullet_state is "fire":
+            fire_bullet(bulletX, bulletY)
+            bulletY -= bulletY_change
+        collison = isCollison(obs_startx,obs_starty,bulletX,bulletY)
+        if collison:
+            bulletY = 480
+            bullet_state = "ready"
+            obs_startx=random.randrange(200,(display_width-200))
+            obs_starty=-750
+            
         button("Pause",650,0,150,50,blue,bright_blue,"pause")
         pygame.display.update()
         clock.tick(60)
